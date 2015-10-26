@@ -1,0 +1,111 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    tools:context=".MainFragment">
+
+    <TextView
+        android:id="@+id/current_state"
+        tools:text="State: A"
+        android:textSize="28sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentTop="true"
+        android:layout_margin="10dp"/>
+
+    <TextView
+        android:id="@+id/last_error"
+        tools:text="Some Error"
+        android:textSize="20sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/current_state"
+        android:layout_margin="10dp"/>
+
+    <LinearLayout
+        android:id="@+id/state_buttons_row_1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_above="@+id/state_buttons_row_2"
+        android:layout_marginBottom="20dp">
+
+        <Button
+            android:id="@+id/state_a_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="State A"
+            android:textColor="@android:color/white"
+            android:background="@android:color/black"
+            android:layout_weight="1"
+            android:layout_margin="5dp"/>
+
+        <Button
+            android:id="@+id/state_b_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="State B"
+            android:textColor="@android:color/white"
+            android:background="@android:color/black"
+            android:layout_weight="1"
+            android:layout_margin="5dp"/>
+
+        <Button
+            android:id="@+id/state_c_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="State C"
+            android:textColor="@android:color/white"
+            android:background="@android:color/black"
+            android:layout_weight="1"
+            android:layout_margin="5dp"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/state_buttons_row_2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="20dp">
+
+        <Button
+            android:id="@+id/state_d_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="State D"
+            android:textColor="@android:color/white"
+            android:background="@android:color/black"
+            android:layout_weight="1"
+            android:layout_margin="5dp"/>
+
+        <Button
+            android:id="@+id/state_e_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="State E"
+            android:textColor="@android:color/white"
+            android:background="@android:color/black"
+            android:layout_weight="1"
+            android:layout_margin="5dp"/>
+
+        <Button
+            android:id="@+id/state_f_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="State F"
+            android:textColor="@android:color/white"
+            android:background="@android:color/black"
+            android:layout_weight="1"
+            android:layout_margin="5dp"/>
+
+    </LinearLayout>
+
+</RelativeLayout>
