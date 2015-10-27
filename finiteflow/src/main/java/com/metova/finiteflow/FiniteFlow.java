@@ -1,6 +1,5 @@
 package com.metova.finiteflow;
 
-import android.content.Context;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
@@ -27,7 +26,7 @@ public class FiniteFlow {
     /**
      * Defines a mapping of context to FiniteFlow instances, allowing mutliple instances based on context
      */
-    private static Map<Context, FiniteFlow> mFiniteFlowInstances;
+    private static Map<String, FiniteFlow> mFiniteFlowInstances;
 
 
     /**
@@ -65,18 +64,18 @@ public class FiniteFlow {
 
     /**
      * Return an instance of FiniteFlow based on the provided context
-     * @param context Context to map the instance to
+     * @param identifier String to map the instance to
      * @return Builder instance
      */
-    public static FiniteFlow getInstance(@NonNull Context context) {
+    public static FiniteFlow getInstance(@NonNull String identifier) {
 
         if(mFiniteFlowInstances == null) { mFiniteFlowInstances = new HashMap<>(); }
 
-        if(!mFiniteFlowInstances.containsKey(context)) {
-            mFiniteFlowInstances.put(context, new FiniteFlow());
+        if(!mFiniteFlowInstances.containsKey(identifier)) {
+            mFiniteFlowInstances.put(identifier, new FiniteFlow());
         }
 
-        return mFiniteFlowInstances.get(context);
+        return mFiniteFlowInstances.get(identifier);
     }
 
     private FiniteFlow() {
@@ -85,13 +84,13 @@ public class FiniteFlow {
 
     /**
      * Clear / remove an instance mapped to the input context
-     * @param context Context of the instance to remove
+     * @param identifier identifier of the instance to remove
      */
-    public static void clearInstance(@NonNull Context context) {
+    public static void clearInstance(@NonNull String identifier) {
 
         if(mFiniteFlowInstances == null) { return; }
 
-        mFiniteFlowInstances.remove(context);
+        mFiniteFlowInstances.remove(identifier);
     }
 
     /**
@@ -210,6 +209,34 @@ public class FiniteFlow {
         }
         else {
             Log.d(TAG, "Duplicate state not added: " + name);
+        }
+        return this;
+    }
+
+    public FiniteFlow flowFor(Object object) throws FlowInitializationException, FlowInvalidException {
+        addStates(object);
+        addTransitions(object);
+        addInitialState(object);
+        return this;
+    }
+
+    public FiniteFlow addInitialState(Object object) throws FlowInvalidException, FlowInitializationException {
+        setInitialState(object.getClass().getAnnotation(Flow.class).initialState());
+        return this;
+    }
+
+    public FiniteFlow addStates(Object object){
+        String[] states = object.getClass().getAnnotation(Flow.class).states();
+        for (int i = 0; i < states.length; i++) {
+            addState(states[i]);
+        }
+        return this;
+    }
+
+    public FiniteFlow addTransitions(Object object) throws FlowInitializationException{
+        FlowTransition[] transitions = object.getClass().getAnnotation(Flow.class).transitions();
+        for (int i = 0; i < transitions.length; i++) {
+            addTransition(transitions[i].from(), transitions[i].to());
         }
         return this;
     }
@@ -527,7 +554,7 @@ public class FiniteFlow {
         return mTransitionHistory;
     }
 
-    public static Map<Context, FiniteFlow> getFiniteFlowInstances() {
+    public static Map<String, FiniteFlow> getFiniteFlowInstances() {
         return mFiniteFlowInstances;
     }
 

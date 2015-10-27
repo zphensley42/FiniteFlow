@@ -1,15 +1,17 @@
 package com.metova.finiteflow;
 
-import android.test.AndroidTestCase;
-import android.test.mock.MockContext;
+import junit.framework.TestCase;
 
 import java.lang.reflect.Method;
 
 // TODO: Test events where OnExit and OnEnter are in different classes
-public class FiniteFlowTest extends AndroidTestCase {
+public class FiniteFlowTest extends TestCase {
 
     // region Test Events
     private boolean onEnterAHit = false, onExitAHit = false;
+
+    public static final String TEST_INSTANCE_NAME = "test_instance";
+    public static final String TEST_INSTANCE_NAME_TWO = "test_instance2";
 
     @OnEnter(state = "A")
     public void onEnter() {
@@ -32,21 +34,20 @@ public class FiniteFlowTest extends AndroidTestCase {
 
         assertNull(FiniteFlow.getFiniteFlowInstances());
 
-        FiniteFlow finiteFlow = FiniteFlow.getInstance(getContext());
+        FiniteFlow finiteFlow = FiniteFlow.getInstance(TEST_INSTANCE_NAME);
         assertNotNull(finiteFlow);
 
         assertNotNull(FiniteFlow.getFiniteFlowInstances());
         assertEquals(1, FiniteFlow.getFiniteFlowInstances().size());
 
-        FiniteFlow finiteFlow2 = FiniteFlow.getInstance(getContext());
+        FiniteFlow finiteFlow2 = FiniteFlow.getInstance(TEST_INSTANCE_NAME);
         assertNotNull(finiteFlow2);
 
         assertEquals(1, FiniteFlow.getFiniteFlowInstances().size());
 
         assertTrue(finiteFlow.equals(finiteFlow2));
 
-        MockContext mockContext = new MockContext();
-        FiniteFlow finiteFlow3 = FiniteFlow.getInstance(mockContext);
+        FiniteFlow finiteFlow3 = FiniteFlow.getInstance(TEST_INSTANCE_NAME_TWO);
         assertNotNull(finiteFlow3);
 
         assertEquals(2, FiniteFlow.getFiniteFlowInstances().size());
@@ -54,7 +55,7 @@ public class FiniteFlowTest extends AndroidTestCase {
         assertFalse(finiteFlow.equals(finiteFlow3));
         assertFalse(finiteFlow2.equals(finiteFlow3));
 
-        FiniteFlow.clearInstance(mockContext);
+        FiniteFlow.clearInstance(TEST_INSTANCE_NAME);
         assertEquals(1, FiniteFlow.getFiniteFlowInstances().size());
 
         FiniteFlow.clearAllInstances();
@@ -63,23 +64,23 @@ public class FiniteFlowTest extends AndroidTestCase {
 
     public void testAddStates() throws Throwable {
 
-        assertNull(FiniteFlow.getInstance(getContext()).getStates());
+        assertNull(FiniteFlow.getInstance(TEST_INSTANCE_NAME).getStates());
 
-        FiniteFlow.getInstance(getContext()).addState("A").addState("B");
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME).addState("A").addState("B");
 
-        assertNotNull(FiniteFlow.getInstance(getContext()).getStates());
+        assertNotNull(FiniteFlow.getInstance(TEST_INSTANCE_NAME).getStates());
 
-        assertEquals("A", FiniteFlow.getInstance(getContext()).getStates().get(0));
-        assertEquals("B", FiniteFlow.getInstance(getContext()).getStates().get(1));
+        assertEquals("A", FiniteFlow.getInstance(TEST_INSTANCE_NAME).getStates().get(0));
+        assertEquals("B", FiniteFlow.getInstance(TEST_INSTANCE_NAME).getStates().get(1));
     }
 
     public void testAddTransitions() throws Throwable {
 
-        assertNull(FiniteFlow.getInstance(getContext()).getTransitions());
+        assertNull(FiniteFlow.getInstance(TEST_INSTANCE_NAME).getTransitions());
 
         FlowInitializationException e = null;
         try {
-            FiniteFlow.getInstance(getContext()).addTransition("A", "B");
+            FiniteFlow.getInstance(TEST_INSTANCE_NAME).addTransition("A", "B");
         }
         catch (FlowInitializationException ex) {
             e = ex;
@@ -87,23 +88,23 @@ public class FiniteFlowTest extends AndroidTestCase {
 
         assertNotNull(e);
 
-        FiniteFlow.getInstance(getContext()).addState("A");
-        FiniteFlow.getInstance(getContext()).addState("B");
-        FiniteFlow.getInstance(getContext()).addTransition("A", "B");
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME).addState("A");
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME).addState("B");
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME).addTransition("A", "B");
 
-        assertNotNull(FiniteFlow.getInstance(getContext()).getTransitions());
-        assertEquals("A", FiniteFlow.getInstance(getContext()).getTransitions().get(0).getFromState());
-        assertEquals("B", FiniteFlow.getInstance(getContext()).getTransitions().get(0).getToState());
-        assertEquals("A_B", FiniteFlow.getInstance(getContext()).getTransitions().get(0).getTransitionName());
+        assertNotNull(FiniteFlow.getInstance(TEST_INSTANCE_NAME).getTransitions());
+        assertEquals("A", FiniteFlow.getInstance(TEST_INSTANCE_NAME).getTransitions().get(0).getFromState());
+        assertEquals("B", FiniteFlow.getInstance(TEST_INSTANCE_NAME).getTransitions().get(0).getToState());
+        assertEquals("A_B", FiniteFlow.getInstance(TEST_INSTANCE_NAME).getTransitions().get(0).getTransitionName());
     }
 
     public void testSetInitialState() throws Throwable {
 
-        assertNull(FiniteFlow.getInstance(getContext()).getCurrentState());
+        assertNull(FiniteFlow.getInstance(TEST_INSTANCE_NAME).getCurrentState());
 
         Exception e = null;
         try {
-            FiniteFlow.getInstance(getContext()).setInitialState("A");
+            FiniteFlow.getInstance(TEST_INSTANCE_NAME).setInitialState("A");
         }
         catch (FlowInitializationException ex) {
             e = ex;
@@ -112,10 +113,10 @@ public class FiniteFlowTest extends AndroidTestCase {
         assertNotNull(e);
         e = null;
 
-        FiniteFlow.getInstance(getContext()).addState("A");
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME).addState("A");
 
         try {
-            FiniteFlow.getInstance(getContext()).setInitialState("B");
+            FiniteFlow.getInstance(TEST_INSTANCE_NAME).setInitialState("B");
         }
         catch (FlowInvalidException ex) {
             e = ex;
@@ -124,19 +125,19 @@ public class FiniteFlowTest extends AndroidTestCase {
         assertNotNull(e);
         e = null;
 
-        FiniteFlow.getInstance(getContext()).setInitialState("A");
-        assertEquals("A", FiniteFlow.getInstance(getContext()).getCurrentState());
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME).setInitialState("A");
+        assertEquals("A", FiniteFlow.getInstance(TEST_INSTANCE_NAME).getCurrentState());
     }
 
     public void testSetEventClasses() throws Throwable {
 
-        assertNull(FiniteFlow.getInstance(getContext()).getEventClassInstances());
-        assertNull(FiniteFlow.getInstance(getContext()).getStateEventMap());
+        assertNull(FiniteFlow.getInstance(TEST_INSTANCE_NAME).getEventClassInstances());
+        assertNull(FiniteFlow.getInstance(TEST_INSTANCE_NAME).getStateEventMap());
 
         Exception e = null;
 
         try {
-            FiniteFlow.getInstance(getContext()).setEventClasses(FiniteFlowTest.class);
+            FiniteFlow.getInstance(TEST_INSTANCE_NAME).setEventClasses(FiniteFlowTest.class);
         }
         catch (FlowInitializationException ex) {
             e = ex;
@@ -145,40 +146,40 @@ public class FiniteFlowTest extends AndroidTestCase {
         assertNotNull(e);
         e = null;
 
-        FiniteFlow.getInstance(getContext())
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME)
                 .addState("A")
                 .addState("B")
                 .addTransition("A", "B")
                 .setInitialState("A");
 
-        FiniteFlow.getInstance(getContext()).setEventClasses(FiniteFlowTest.class);
-        assertNotNull(FiniteFlow.getInstance(getContext()).getEventClassInstances());
-        assertNotNull(FiniteFlow.getInstance(getContext()).getStateEventMap());
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME).setEventClasses(FiniteFlowTest.class);
+        assertNotNull(FiniteFlow.getInstance(TEST_INSTANCE_NAME).getEventClassInstances());
+        assertNotNull(FiniteFlow.getInstance(TEST_INSTANCE_NAME).getStateEventMap());
 
-        assertTrue(FiniteFlow.getInstance(getContext()).getEventClassInstances().containsKey(FiniteFlowTest.class));
-        assertNull(FiniteFlow.getInstance(getContext()).getEventClassInstances().get(FiniteFlowTest.class));
+        assertTrue(FiniteFlow.getInstance(TEST_INSTANCE_NAME).getEventClassInstances().containsKey(FiniteFlowTest.class));
+        assertNull(FiniteFlow.getInstance(TEST_INSTANCE_NAME).getEventClassInstances().get(FiniteFlowTest.class));
 
         // We only provided annotations for "A" in this class, not "B"
-        assertTrue(FiniteFlow.getInstance(getContext()).getStateEventMap().containsKey("A"));
-        assertFalse(FiniteFlow.getInstance(getContext()).getStateEventMap().containsKey("B"));
+        assertTrue(FiniteFlow.getInstance(TEST_INSTANCE_NAME).getStateEventMap().containsKey("A"));
+        assertFalse(FiniteFlow.getInstance(TEST_INSTANCE_NAME).getStateEventMap().containsKey("B"));
 
         // Ensure we have no object yet (we haven't registered yet)
-        assertNull(FiniteFlow.getInstance(getContext()).getStateEventMap().get("A").getInstance());
-        assertEquals(FiniteFlowTest.class, FiniteFlow.getInstance(getContext()).getStateEventMap().get("A").getStateClass());
+        assertNull(FiniteFlow.getInstance(TEST_INSTANCE_NAME).getStateEventMap().get("A").getInstance());
+        assertEquals(FiniteFlowTest.class, FiniteFlow.getInstance(TEST_INSTANCE_NAME).getStateEventMap().get("A").getStateClass());
 
         Method onEnterMethod = FiniteFlowTest.class.getMethod("onEnter");
         Method onExitMethod = FiniteFlowTest.class.getMethod("onExit");
-        assertEquals(onEnterMethod, FiniteFlow.getInstance(getContext()).getStateEventMap().get("A").getStateOnEnterMethod());
-        assertEquals(onExitMethod, FiniteFlow.getInstance(getContext()).getStateEventMap().get("A").getStateOnExitMethod());
+        assertEquals(onEnterMethod, FiniteFlow.getInstance(TEST_INSTANCE_NAME).getStateEventMap().get("A").getStateOnEnterMethod());
+        assertEquals(onExitMethod, FiniteFlow.getInstance(TEST_INSTANCE_NAME).getStateEventMap().get("A").getStateOnExitMethod());
 
         // Test register / unregister affecting the event mapping
-        FiniteFlow.getInstance(getContext()).register(this);
-        assertEquals(this, FiniteFlow.getInstance(getContext()).getStateEventMap().get("A").getInstance());
-        assertEquals(this, FiniteFlow.getInstance(getContext()).getEventClassInstances().get(FiniteFlowTest.class));
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME).register(this);
+        assertEquals(this, FiniteFlow.getInstance(TEST_INSTANCE_NAME).getStateEventMap().get("A").getInstance());
+        assertEquals(this, FiniteFlow.getInstance(TEST_INSTANCE_NAME).getEventClassInstances().get(FiniteFlowTest.class));
 
-        FiniteFlow.getInstance(getContext()).unregister(this);
-        assertNull(FiniteFlow.getInstance(getContext()).getStateEventMap().get("A").getInstance());
-        assertNull(FiniteFlow.getInstance(getContext()).getEventClassInstances().get(FiniteFlowTest.class));
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME).unregister(this);
+        assertNull(FiniteFlow.getInstance(TEST_INSTANCE_NAME).getStateEventMap().get("A").getInstance());
+        assertNull(FiniteFlow.getInstance(TEST_INSTANCE_NAME).getEventClassInstances().get(FiniteFlowTest.class));
     }
 
     public void testApplyTransition() throws Throwable {
@@ -187,7 +188,7 @@ public class FiniteFlowTest extends AndroidTestCase {
 
         // Before proper setup
         try {
-            FiniteFlow.getInstance(getContext()).applyTransition("A_B");
+            FiniteFlow.getInstance(TEST_INSTANCE_NAME).applyTransition("A_B");
         }
         catch (FlowInitializationException ex) {
             e = ex;
@@ -197,7 +198,7 @@ public class FiniteFlowTest extends AndroidTestCase {
         e = null;
 
         // Setup
-        FiniteFlow.getInstance(getContext())
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME)
                 .addState("A")
                 .addState("B")
                 .addTransition("A", "B")
@@ -207,7 +208,7 @@ public class FiniteFlowTest extends AndroidTestCase {
 
         // Invalid move (not at state B)
         try {
-            FiniteFlow.getInstance(getContext()).applyTransition("B_B");
+            FiniteFlow.getInstance(TEST_INSTANCE_NAME).applyTransition("B_B");
         }
         catch (InvalidStateChangeException ex) {
             e = ex;
@@ -219,7 +220,7 @@ public class FiniteFlowTest extends AndroidTestCase {
 
         // Invalid move (transition doesn't exist)
         try {
-            FiniteFlow.getInstance(getContext()).applyTransition("A_A");
+            FiniteFlow.getInstance(TEST_INSTANCE_NAME).applyTransition("A_A");
         }
         catch (InvalidStateChangeException ex) {
             e = ex;
@@ -228,9 +229,9 @@ public class FiniteFlowTest extends AndroidTestCase {
         assertNotNull(e);
         e = null;
 
-        assertEquals("A", FiniteFlow.getInstance(getContext()).getCurrentState());
-        FiniteFlow.getInstance(getContext()).applyTransition("A_B");
-        assertEquals("B", FiniteFlow.getInstance(getContext()).getCurrentState());
+        assertEquals("A", FiniteFlow.getInstance(TEST_INSTANCE_NAME).getCurrentState());
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME).applyTransition("A_B");
+        assertEquals("B", FiniteFlow.getInstance(TEST_INSTANCE_NAME).getCurrentState());
     }
 
     public void testMoveToState() throws Throwable {
@@ -239,7 +240,7 @@ public class FiniteFlowTest extends AndroidTestCase {
 
         // Before proper setup
         try {
-            FiniteFlow.getInstance(getContext()).moveToState("A");
+            FiniteFlow.getInstance(TEST_INSTANCE_NAME).moveToState("A");
         }
         catch (FlowInitializationException ex) {
             e = ex;
@@ -250,7 +251,7 @@ public class FiniteFlowTest extends AndroidTestCase {
 
 
         // Setup
-        FiniteFlow.getInstance(getContext())
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME)
                 .addState("A")
                 .addState("B")
                 .addState("C")
@@ -261,7 +262,7 @@ public class FiniteFlowTest extends AndroidTestCase {
 
         // Invalid move (no transition from A to C)
         try {
-            FiniteFlow.getInstance(getContext()).moveToState("C");
+            FiniteFlow.getInstance(TEST_INSTANCE_NAME).moveToState("C");
         }
         catch (InvalidStateChangeException ex) {
             e = ex;
@@ -272,11 +273,11 @@ public class FiniteFlowTest extends AndroidTestCase {
 
 
         // Proper move
-        assertEquals("A", FiniteFlow.getInstance(getContext()).getCurrentState());
-        FiniteFlow.getInstance(getContext()).moveToState("B");
-        assertEquals("B", FiniteFlow.getInstance(getContext()).getCurrentState());
-        FiniteFlow.getInstance(getContext()).moveToState("C");
-        assertEquals("C", FiniteFlow.getInstance(getContext()).getCurrentState());
+        assertEquals("A", FiniteFlow.getInstance(TEST_INSTANCE_NAME).getCurrentState());
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME).moveToState("B");
+        assertEquals("B", FiniteFlow.getInstance(TEST_INSTANCE_NAME).getCurrentState());
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME).moveToState("C");
+        assertEquals("C", FiniteFlow.getInstance(TEST_INSTANCE_NAME).getCurrentState());
     }
 
     public void testTransitionHistory() throws Throwable {
@@ -285,7 +286,7 @@ public class FiniteFlowTest extends AndroidTestCase {
 
         // Without setup
         try {
-            FiniteFlow.getInstance(getContext()).moveToPreviousState();
+            FiniteFlow.getInstance(TEST_INSTANCE_NAME).moveToPreviousState();
         }
         catch (FlowInitializationException ex) {
             e = ex;
@@ -296,7 +297,7 @@ public class FiniteFlowTest extends AndroidTestCase {
 
 
         // Setup
-        FiniteFlow.getInstance(getContext())
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME)
                 .addState("A")
                 .addState("B")
                 .addState("C")
@@ -305,42 +306,42 @@ public class FiniteFlowTest extends AndroidTestCase {
                 .addTransition("B", "C")
                 .setInitialState("A");
 
-        assertNull(FiniteFlow.getInstance(getContext()).getTransitionHistory());
+        assertNull(FiniteFlow.getInstance(TEST_INSTANCE_NAME).getTransitionHistory());
 
         // Add to history
-        FiniteFlow.getInstance(getContext()).moveToState("B");
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME).moveToState("B");
 
-        assertNotNull(FiniteFlow.getInstance(getContext()).getTransitionHistory());
-        assertEquals("A", FiniteFlow.getInstance(getContext()).getTransitionHistory().peek().getFromState());
-        assertEquals("B", FiniteFlow.getInstance(getContext()).getTransitionHistory().peek().getToState());
+        assertNotNull(FiniteFlow.getInstance(TEST_INSTANCE_NAME).getTransitionHistory());
+        assertEquals("A", FiniteFlow.getInstance(TEST_INSTANCE_NAME).getTransitionHistory().peek().getFromState());
+        assertEquals("B", FiniteFlow.getInstance(TEST_INSTANCE_NAME).getTransitionHistory().peek().getToState());
 
         // Add to history
-        FiniteFlow.getInstance(getContext()).moveToState("C");
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME).moveToState("C");
 
-        assertEquals("B", FiniteFlow.getInstance(getContext()).getTransitionHistory().peek().getFromState());
-        assertEquals("C", FiniteFlow.getInstance(getContext()).getTransitionHistory().peek().getToState());
-
-        // Check current state
-        assertEquals("C", FiniteFlow.getInstance(getContext()).getCurrentState());
-
-        // Remove from history / move back
-        FiniteFlow.getInstance(getContext()).moveToPreviousState();
-
-        assertEquals("A", FiniteFlow.getInstance(getContext()).getTransitionHistory().peek().getFromState());
-        assertEquals("B", FiniteFlow.getInstance(getContext()).getTransitionHistory().peek().getToState());
+        assertEquals("B", FiniteFlow.getInstance(TEST_INSTANCE_NAME).getTransitionHistory().peek().getFromState());
+        assertEquals("C", FiniteFlow.getInstance(TEST_INSTANCE_NAME).getTransitionHistory().peek().getToState());
 
         // Check current state
-        assertEquals("B", FiniteFlow.getInstance(getContext()).getCurrentState());
+        assertEquals("C", FiniteFlow.getInstance(TEST_INSTANCE_NAME).getCurrentState());
 
         // Remove from history / move back
-        FiniteFlow.getInstance(getContext()).moveToPreviousState();
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME).moveToPreviousState();
 
-        assertEquals("A", FiniteFlow.getInstance(getContext()).getCurrentState());
-        assertTrue(FiniteFlow.getInstance(getContext()).getTransitionHistory().isEmpty());
+        assertEquals("A", FiniteFlow.getInstance(TEST_INSTANCE_NAME).getTransitionHistory().peek().getFromState());
+        assertEquals("B", FiniteFlow.getInstance(TEST_INSTANCE_NAME).getTransitionHistory().peek().getToState());
+
+        // Check current state
+        assertEquals("B", FiniteFlow.getInstance(TEST_INSTANCE_NAME).getCurrentState());
+
+        // Remove from history / move back
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME).moveToPreviousState();
+
+        assertEquals("A", FiniteFlow.getInstance(TEST_INSTANCE_NAME).getCurrentState());
+        assertTrue(FiniteFlow.getInstance(TEST_INSTANCE_NAME).getTransitionHistory().isEmpty());
 
         // Ensure we can no longer move backwards once emptying out the history
         try {
-            FiniteFlow.getInstance(getContext()).moveToPreviousState();
+            FiniteFlow.getInstance(TEST_INSTANCE_NAME).moveToPreviousState();
         }
         catch (FlowInvalidException ex) {
             e = ex;
@@ -353,7 +354,7 @@ public class FiniteFlowTest extends AndroidTestCase {
     public void testEventsCalled() throws Throwable {
 
         // Setup
-        FiniteFlow.getInstance(getContext())
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME)
                 .addState("A")
                 .addState("B")
                 .addTransition("A", "B")
@@ -366,17 +367,17 @@ public class FiniteFlowTest extends AndroidTestCase {
         assertFalse(onExitAHit);
 
         // Should fail to call event without an instance registered
-        FiniteFlow.getInstance(getContext()).moveToState("B");
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME).moveToState("B");
 
         assertFalse(onEnterAHit);
         assertFalse(onExitAHit);
 
         // Reset to state A
-        FiniteFlow.getInstance(getContext()).moveToState("A");
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME).moveToState("A");
 
-        FiniteFlow.getInstance(getContext()).register(this);
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME).register(this);
 
-        FiniteFlow.getInstance(getContext()).moveToState("B");
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME).moveToState("B");
 
         assertFalse(onEnterAHit);
         assertTrue(onExitAHit);
@@ -384,19 +385,19 @@ public class FiniteFlowTest extends AndroidTestCase {
         onEnterAHit = false;
         onExitAHit = false;
 
-        FiniteFlow.getInstance(getContext()).moveToState("A");
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME).moveToState("A");
 
         assertTrue(onEnterAHit);
         assertFalse(onExitAHit);
 
         // Unregister and try again, ensuring events are not hit
-        FiniteFlow.getInstance(getContext()).unregister(this);
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME).unregister(this);
 
         onEnterAHit = false;
         onExitAHit = false;
 
-        FiniteFlow.getInstance(getContext()).moveToState("B");
-        FiniteFlow.getInstance(getContext()).moveToState("A");
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME).moveToState("B");
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME).moveToState("A");
 
         assertFalse(onEnterAHit);
         assertFalse(onExitAHit);
