@@ -108,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
                         .show();
 
                 try {
-                    FiniteFlow.getInstance(getApplicationContext()).moveToState("B");
+                    FiniteFlow.getInstance(BaseApplication.TAG).moveToState("B");
                 } catch (InvalidStateChangeException | FlowInitializationException e) {
                     e.printStackTrace();
                 }
@@ -140,13 +140,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
 
         super.onStart();
-        FiniteFlow.getInstance(getApplicationContext()).register(this);
+        FiniteFlow.getInstance(BaseApplication.TAG).register(this);
     }
 
     @Override
     protected void onStop() {
 
-        FiniteFlow.getInstance(getApplicationContext()).unregister(this);
+        FiniteFlow.getInstance(BaseApplication.TAG).unregister(this);
         super.onStop();
     }
 
@@ -176,9 +176,9 @@ public class MainActivity extends AppCompatActivity {
     public void onBackPressed() {
 
         try {
-            FiniteFlow.getInstance(getApplicationContext()).moveToPreviousState();
+            FiniteFlow.getInstance(BaseApplication.TAG).moveToPreviousState();
             if(mMainFragment != null) {
-                mMainFragment.setActiveStateButton(FiniteFlow.getInstance(getApplicationContext()).getCurrentState());
+                mMainFragment.setActiveStateButton(FiniteFlow.getInstance(BaseApplication.TAG).getCurrentState());
             }
         } catch (FlowInvalidException | FlowInitializationException e) {
             e.printStackTrace();
