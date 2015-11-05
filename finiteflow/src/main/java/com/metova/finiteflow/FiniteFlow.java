@@ -189,7 +189,7 @@ public class FiniteFlow {
      * @throws FlowInitializationException In case states have not been added before making this call or the state provided is invalid
      * @throws FlowInvalidException In case the state doesn't exist
      */
-    public FiniteFlow setInitialState(@NonNull String state) throws FlowInitializationException, FlowInvalidException {
+    public synchronized FiniteFlow setInitialState(@NonNull String state) throws FlowInitializationException, FlowInvalidException {
 
         if(mStates == null) { throw new FlowInitializationException(); }
 
@@ -208,7 +208,7 @@ public class FiniteFlow {
      * @param name The state to add
      * @return Builder instance
      */
-    public FiniteFlow addState(@NonNull String name) {
+    public synchronized FiniteFlow addState(@NonNull String name) {
 
         if(mStates == null) { mStates = new ArrayList<String>(); }
 
@@ -221,6 +221,7 @@ public class FiniteFlow {
         return this;
     }
 
+    // region Helper methods for @Flow annotation
     public FiniteFlow flowFor(Object object) throws FlowInitializationException, FlowInvalidException {
         addStates(object);
         addTransitions(object);
@@ -248,6 +249,7 @@ public class FiniteFlow {
         }
         return this;
     }
+    // endregion Helper methods
 
     /**
      * Add a transition to the FSM's list of transitions
@@ -256,7 +258,7 @@ public class FiniteFlow {
      * @return Builder instance
      * @throws FlowInitializationException If either of the states do not exist
      */
-    public FiniteFlow addTransition(@NonNull String fromState, @NonNull String toState) throws FlowInitializationException {
+    public synchronized FiniteFlow addTransition(@NonNull String fromState, @NonNull String toState) throws FlowInitializationException {
 
         if(mStates == null || mStates.isEmpty()) { throw new FlowInitializationException(); }
 
@@ -288,7 +290,7 @@ public class FiniteFlow {
      * @throws InvalidStateChangeException In case moving with the transition is not valid for the current state of the FSM
      * @throws FlowInitializationException If the FSM has not been setup correctly with states / transitions / starting state
      */
-    public FiniteFlow applyTransition(@NonNull String name) throws InvalidStateChangeException, FlowInitializationException {
+    public synchronized FiniteFlow applyTransition(@NonNull String name) throws InvalidStateChangeException, FlowInitializationException {
 
         if(!isValidForTransitions()) { throw new FlowInitializationException(); }
 
@@ -321,7 +323,7 @@ public class FiniteFlow {
      * @throws InvalidStateChangeException In case moving to the supplied state is not valid for the current state of the FSM
      * @throws FlowInitializationException If the FSM has not been setup correctly with states / transitions / starting state
      */
-    public FiniteFlow moveToState(@NonNull String name) throws InvalidStateChangeException, FlowInitializationException {
+    public synchronized FiniteFlow moveToState(@NonNull String name) throws InvalidStateChangeException, FlowInitializationException {
 
         if(!isValidForTransitions()) { throw new FlowInitializationException(); }
 
@@ -346,7 +348,7 @@ public class FiniteFlow {
      * @throws FlowInitializationException If the FSM has not been setup correctly with states / transitions / starting state / no transition history (for now)
      * @throws FlowInvalidException If the flow does not have any history to move to.
      */
-    public FiniteFlow moveToPreviousState() throws FlowInvalidException, FlowInitializationException {
+    public synchronized FiniteFlow moveToPreviousState() throws FlowInvalidException, FlowInitializationException {
 
         if(!isValidForTransitions()) { throw new FlowInitializationException(); }
         if(mTransitionHistory == null || mTransitionHistory.isEmpty()) { throw new FlowInvalidException("The flow has no history to move to."); }
