@@ -130,7 +130,7 @@ public class MainFragment extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mFiniteFlow = FiniteFlow.getInstance(getActivity().getApplicationContext());
+        mFiniteFlow = FiniteFlow.getInstance(BaseApplication.TAG);
         setActiveStateButton(mFiniteFlow.getCurrentState());
     }
 
@@ -235,12 +235,12 @@ public class MainFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        FiniteFlow.getInstance(getActivity().getApplicationContext()).register(this);
+        FiniteFlow.getInstance(BaseApplication.TAG).register(this);
     }
 
     @Override
     public void onStop() {
-        FiniteFlow.getInstance(getActivity().getApplicationContext()).unregister(this);
+        FiniteFlow.getInstance(BaseApplication.TAG).unregister(this);
         super.onStop();
     }
 
