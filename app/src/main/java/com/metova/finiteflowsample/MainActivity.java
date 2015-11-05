@@ -76,12 +76,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @OnExit(state = "C")
-    public void onExitC() {
-
-        Log.i("StateEvent", "onExitC");
-        Toast.makeText(this, "onExitC", Toast.LENGTH_SHORT).show();
-    }
+//    @OnExit(state = "C")
+//    public void onExitC() {
+//
+//        Log.i("StateEvent", "onExitC");
+//        Toast.makeText(this, "onExitC", Toast.LENGTH_SHORT).show();
+//    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -39,7 +39,7 @@ public class FiniteFlow {
      * Defines a mapping of state to event method information
      * This is generated during initialization and updated via register / unregister
      */
-    private Map<String, StateEventEntry> mStateEventMap;
+    private Map<String, List<StateEventEntry>> mStateEventMap;
 
     /**
      * Defines a list of states defined by string
@@ -136,12 +136,16 @@ public class FiniteFlow {
                 entry.setValue(object);
 
                 // Modify all state event mappings with this instance
-                for(Map.Entry<String, StateEventEntry> eventEntry : mStateEventMap.entrySet()) {
+                for(Map.Entry<String, List<StateEventEntry>> eventEntry : mStateEventMap.entrySet()) {
 
-                    // If the class is the same, set our instance
-                    if(eventEntry.getValue().mStateClass.equals(entry.getKey())) {
+                    List<StateEventEntry> entries = eventEntry.getValue();
+                    for(StateEventEntry stateEventEntry : entries) {
 
-                        eventEntry.getValue().mInstance = object;
+                        // If the class is the same, set our instance
+                        if(stateEventEntry.mStateClass.equals(entry.getKey())) {
+
+                            stateEventEntry.mInstance = object;
+                        }
                     }
                 }
             }
@@ -162,12 +166,16 @@ public class FiniteFlow {
                 entry.setValue(null);
 
                 // Modify all state event mappings with this instance
-                for(Map.Entry<String, StateEventEntry> eventEntry : mStateEventMap.entrySet()) {
+                for(Map.Entry<String, List<StateEventEntry>> eventEntry : mStateEventMap.entrySet()) {
 
-                    // If the class is the same, set our instance
-                    if(eventEntry.getValue().mStateClass.equals(entry.getKey())) {
+                    List<StateEventEntry> entries = eventEntry.getValue();
+                    for(StateEventEntry stateEventEntry : entries) {
 
-                        eventEntry.getValue().mInstance = null;
+                        // If the class is the same, set our instance
+                        if(stateEventEntry.mStateClass.equals(entry.getKey())) {
+
+                            stateEventEntry.mInstance = null;
+                        }
                     }
                 }
             }
@@ -393,7 +401,18 @@ public class FiniteFlow {
 
                 StateEventEntry stateEventEntry = getMethodsForState(entry.getKey(), entry.getValue(), state);
                 if(stateEventEntry != null) {
-                    mStateEventMap.put(state, stateEventEntry);
+
+                    List<StateEventEntry> entries = mStateEventMap.get(state);
+                    if(entries != null) {
+                        if(!entries.contains(stateEventEntry)) {
+                            entries.add(stateEventEntry);
+                        }
+                    }
+                    else {
+                        entries = new ArrayList<>();
+                        entries.add(stateEventEntry);
+                    }
+                    mStateEventMap.put(state, entries);
                 }
             }
         }
@@ -409,31 +428,43 @@ public class FiniteFlow {
 
         Method onExit = null, onEnter = null;
         Object enterInstance = null, exitInstance = null;
-        for(Map.Entry<String, StateEventEntry> entry : mStateEventMap.entrySet()) {
+        for(Map.Entry<String, List<StateEventEntry>> entry : mStateEventMap.entrySet()) {
 
-            if(entry.getKey().equals(transition.getFromState())) {
+            List<StateEventEntry> entries = entry.getValue();
+            for(StateEventEntry stateEventEntry : entries) {
 
-                // Get the OnExit (OnEnter if reversed)
-                if(reverse) {
-                    onEnter = entry.getValue().mStateOnEnterMethod;
-                    enterInstance = entry.getValue().mInstance;
+                if(entry.getKey().equals(transition.getFromState())) {
+
+                    // Get the OnExit (OnEnter if reversed)
+                    if(reverse) {
+                        if(stateEventEntry.mStateOnEnterMethod != null) {
+                            onEnter = stateEventEntry.mStateOnEnterMethod;
+                            enterInstance = stateEventEntry.mInstance;
+                        }
+                    }
+                    else {
+                        if(stateEventEntry.mStateOnExitMethod != null) {
+                            onExit = stateEventEntry.mStateOnExitMethod;
+                            exitInstance = stateEventEntry.mInstance;
+                        }
+                    }
                 }
-                else {
-                    onExit = entry.getValue().mStateOnExitMethod;
-                    exitInstance = entry.getValue().mInstance;
-                }
-            }
 
-            if(entry.getKey().equals(transition.getToState())) {
+                if(entry.getKey().equals(transition.getToState())) {
 
-                // Get the OnEnter (OnExit if reversed)
-                if(reverse) {
-                    onExit = entry.getValue().mStateOnExitMethod;
-                    exitInstance = entry.getValue().mInstance;
-                }
-                else {
-                    onEnter = entry.getValue().mStateOnEnterMethod;
-                    enterInstance = entry.getValue().mInstance;
+                    // Get the OnEnter (OnExit if reversed)
+                    if(reverse) {
+                        if(stateEventEntry.mStateOnExitMethod != null) {
+                            onExit = stateEventEntry.mStateOnExitMethod;
+                            exitInstance = stateEventEntry.mInstance;
+                        }
+                    }
+                    else {
+                        if(stateEventEntry.mStateOnEnterMethod != null) {
+                            onEnter = stateEventEntry.mStateOnEnterMethod;
+                            enterInstance = stateEventEntry.mInstance;
+                        }
+                    }
                 }
             }
         }
@@ -524,6 +555,39 @@ public class FiniteFlow {
         public Method getStateOnExitMethod() {
             return mStateOnExitMethod;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            StateEventEntry that = (StateEventEntry) o;
+
+            if (mStateClass != null ? !mStateClass.equals(that.mStateClass) : that.mStateClass != null) {
+                return false;
+            }
+            if (mInstance != null ? !mInstance.equals(that.mInstance) : that.mInstance != null) {
+                return false;
+            }
+            if (mStateOnEnterMethod != null ? !mStateOnEnterMethod.equals(that.mStateOnEnterMethod) : that.mStateOnEnterMethod != null) {
+                return false;
+            }
+            return !(mStateOnExitMethod != null ? !mStateOnExitMethod.equals(that.mStateOnExitMethod) : that.mStateOnExitMethod != null);
+
+        }
+
+        @Override
+        public int hashCode() {
+            int result = mStateClass != null ? mStateClass.hashCode() : 0;
+            result = 31 * result + (mInstance != null ? mInstance.hashCode() : 0);
+            result = 31 * result + (mStateOnEnterMethod != null ? mStateOnEnterMethod.hashCode() : 0);
+            result = 31 * result + (mStateOnExitMethod != null ? mStateOnExitMethod.hashCode() : 0);
+            return result;
+        }
     }
     // endregion
 
@@ -534,7 +598,7 @@ public class FiniteFlow {
         return mEventClassInstances;
     }
 
-    public Map<String, StateEventEntry> getStateEventMap() {
+    public Map<String, List<StateEventEntry>> getStateEventMap() {
         return mStateEventMap;
     }
 

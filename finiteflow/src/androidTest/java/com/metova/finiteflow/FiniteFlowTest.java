@@ -4,14 +4,16 @@ import junit.framework.TestCase;
 
 import java.lang.reflect.Method;
 
-// TODO: Test events where OnExit and OnEnter are in different classes
 public class FiniteFlowTest extends TestCase {
 
     // region Test Events
-    private boolean onEnterAHit = false, onExitAHit = false;
+    private boolean onEnterAHit = false, onExitAHit = false, onExitTestStateHit = false;
 
     public static final String TEST_INSTANCE_NAME = "test_instance";
     public static final String TEST_INSTANCE_NAME_TWO = "test_instance2";
+
+    // Util for other class testing
+    TestUtil mTestUtil = TestUtil.getInstance();
 
     @OnEnter(state = "A")
     public void onEnter() {
@@ -22,12 +24,23 @@ public class FiniteFlowTest extends TestCase {
     public void onExit() {
         onExitAHit = true;
     }
+
+    @OnExit(state = "TestState")
+    public void onExitTestState() {
+        onExitTestStateHit = true;
+    }
     // endregion
 
     @Override
     protected void tearDown() throws Exception {
+
         super.tearDown();
-        FiniteFlow.clearAllInstances(); // Be sure to clear the instances between test execution
+
+        // Be sure to clear the instances between test execution
+        FiniteFlow.clearAllInstances();
+
+        // Reset the TestUtil instance
+        mTestUtil.setTestStateHit(false);
     }
 
     public void testInstance() throws Throwable {
@@ -164,21 +177,21 @@ public class FiniteFlowTest extends TestCase {
         assertFalse(FiniteFlow.getInstance(TEST_INSTANCE_NAME).getStateEventMap().containsKey("B"));
 
         // Ensure we have no object yet (we haven't registered yet)
-        assertNull(FiniteFlow.getInstance(TEST_INSTANCE_NAME).getStateEventMap().get("A").getInstance());
-        assertEquals(FiniteFlowTest.class, FiniteFlow.getInstance(TEST_INSTANCE_NAME).getStateEventMap().get("A").getStateClass());
+        assertNull(FiniteFlow.getInstance(TEST_INSTANCE_NAME).getStateEventMap().get("A").get(0).getInstance());
+        assertEquals(FiniteFlowTest.class, FiniteFlow.getInstance(TEST_INSTANCE_NAME).getStateEventMap().get("A").get(0).getStateClass());
 
         Method onEnterMethod = FiniteFlowTest.class.getMethod("onEnter");
         Method onExitMethod = FiniteFlowTest.class.getMethod("onExit");
-        assertEquals(onEnterMethod, FiniteFlow.getInstance(TEST_INSTANCE_NAME).getStateEventMap().get("A").getStateOnEnterMethod());
-        assertEquals(onExitMethod, FiniteFlow.getInstance(TEST_INSTANCE_NAME).getStateEventMap().get("A").getStateOnExitMethod());
+        assertEquals(onEnterMethod, FiniteFlow.getInstance(TEST_INSTANCE_NAME).getStateEventMap().get("A").get(0).getStateOnEnterMethod());
+        assertEquals(onExitMethod, FiniteFlow.getInstance(TEST_INSTANCE_NAME).getStateEventMap().get("A").get(0).getStateOnExitMethod());
 
         // Test register / unregister affecting the event mapping
         FiniteFlow.getInstance(TEST_INSTANCE_NAME).register(this);
-        assertEquals(this, FiniteFlow.getInstance(TEST_INSTANCE_NAME).getStateEventMap().get("A").getInstance());
+        assertEquals(this, FiniteFlow.getInstance(TEST_INSTANCE_NAME).getStateEventMap().get("A").get(0).getInstance());
         assertEquals(this, FiniteFlow.getInstance(TEST_INSTANCE_NAME).getEventClassInstances().get(FiniteFlowTest.class));
 
         FiniteFlow.getInstance(TEST_INSTANCE_NAME).unregister(this);
-        assertNull(FiniteFlow.getInstance(TEST_INSTANCE_NAME).getStateEventMap().get("A").getInstance());
+        assertNull(FiniteFlow.getInstance(TEST_INSTANCE_NAME).getStateEventMap().get("A").get(0).getInstance());
         assertNull(FiniteFlow.getInstance(TEST_INSTANCE_NAME).getEventClassInstances().get(FiniteFlowTest.class));
     }
 
@@ -401,5 +414,57 @@ public class FiniteFlowTest extends TestCase {
 
         assertFalse(onEnterAHit);
         assertFalse(onExitAHit);
+    }
+
+    public void testMultiClassEvents() throws Throwable {
+
+        // Setup
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME)
+                .addState("A")
+                .addState("TestState")
+                .addTransition("A", "TestState")
+                .addTransition("TestState", "A")
+                .setInitialState("A")
+                .setEventClasses(FiniteFlowTest.class, TestUtil.class);
+
+        assertFalse(onEnterAHit);
+        assertFalse(onExitAHit);
+        assertFalse(mTestUtil.isTestStateHit());
+        assertFalse(onExitTestStateHit);
+
+        // Should fail to call event without an instance registered
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME).moveToState("TestState");
+
+        assertFalse(onEnterAHit);
+        assertFalse(onExitAHit);
+        assertFalse(mTestUtil.isTestStateHit());
+        assertFalse(onExitTestStateHit);
+
+        // Reset to A
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME).moveToPreviousState();
+
+        // Register for events
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME).register(this);
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME).register(mTestUtil);
+
+        // Now, move to states and check for events
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME).moveToState("TestState");
+
+        assertFalse(onEnterAHit);
+        assertTrue(onExitAHit);
+        assertTrue(mTestUtil.isTestStateHit());
+        assertFalse(onExitTestStateHit);
+
+        // Reset and move back
+        onEnterAHit = false;
+        onExitAHit = false;
+        mTestUtil.setTestStateHit(false);
+
+        FiniteFlow.getInstance(TEST_INSTANCE_NAME).moveToState("A");
+
+        assertTrue(onEnterAHit);
+        assertFalse(onExitAHit);
+        assertFalse(mTestUtil.isTestStateHit());
+        assertTrue(onExitTestStateHit);
     }
 }

@@ -73,6 +73,13 @@ public class MainFragment extends Fragment {
         Toast.makeText(getActivity(), "onExitF", Toast.LENGTH_SHORT).show();
     }
 
+    @OnExit(state = "C")
+    public void onExitC() {
+
+        Log.i("StateEvent", "onExitC");
+        Toast.makeText(getActivity(), "onExitC", Toast.LENGTH_SHORT).show();
+    }
+
 
     private TextView currentState, lastError;
     private Button stateButtonA;
