@@ -3,6 +3,10 @@ package com.metova.finiteflow;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -18,7 +22,7 @@ import java.util.Stack;
  * TODO: Either disable ability to modify states / transitions after creation
  * TODO: or provide a method to re-initialize the FSM
  */
-public class FiniteFlow {
+public class FiniteFlow implements Serializable {
 
     private static final String TAG = FiniteFlow.class.getSimpleName();
 
@@ -61,6 +65,11 @@ public class FiniteFlow {
      */
     private Stack<Transition> mTransitionHistory;
 
+    /**
+     * Identifier for the instance
+     */
+    private String mIdentifier;
+
 
     /**
      * Return an instance of FiniteFlow based on the provided context
@@ -72,13 +81,14 @@ public class FiniteFlow {
         if(mFiniteFlowInstances == null) { mFiniteFlowInstances = new HashMap<>(); }
 
         if(!mFiniteFlowInstances.containsKey(identifier)) {
-            mFiniteFlowInstances.put(identifier, new FiniteFlow());
+            mFiniteFlowInstances.put(identifier, new FiniteFlow(identifier));
         }
 
         return mFiniteFlowInstances.get(identifier);
     }
 
-    private FiniteFlow() {
+    private FiniteFlow(String identifier) {
+        mIdentifier = identifier;
     }
 
 
@@ -595,7 +605,6 @@ public class FiniteFlow {
 
 
     // region Accessors (for information / to help testing)
-
     public Map<Class, Object> getEventClassInstances() {
         return mEventClassInstances;
     }
@@ -624,5 +633,36 @@ public class FiniteFlow {
         return mFiniteFlowInstances;
     }
 
+    public String getIdentifier() {
+        return mIdentifier;
+    }
+    // endregion
+
+
+    // region Serialization
+    // TODO: As part of serialization reading (deserialize), we need to somehow store the class names and remake our class / event links
+    // TODO: If this is remotely possible for object instances, try that too but it might not be (in which case we might need to enforce
+    // TODO: a user-defined method of resetting events after reading from persistence)
+    private void writeObject(ObjectOutputStream out) throws IOException {
+
+        out.writeObject(mStates);
+        out.writeObject(mTransitions);
+        out.writeObject(mCurrentState);
+        out.writeObject(mTransitionHistory);
+        out.writeObject(mIdentifier);
+
+        // For now, don't write event stuff
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+
+        mStates = (List<String>) in.readObject();
+        mTransitions = (List<Transition>) in.readObject();
+        mCurrentState = (String) in.readObject();
+        mTransitionHistory = (Stack<Transition>) in.readObject();
+        mIdentifier = (String) in.readObject();
+
+        // For now, don't read event stuff (and also deal with the unchecked casts above)
+    }
     // endregion
 }

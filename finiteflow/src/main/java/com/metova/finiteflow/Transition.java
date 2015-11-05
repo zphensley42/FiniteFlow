@@ -1,9 +1,11 @@
 package com.metova.finiteflow;
 
+import java.io.Serializable;
+
 /**
  * Transitions have an implied name base on the fromState / toState
  */
-public class Transition {
+public class Transition implements Serializable {
 
     private String fromState;
     private String toState;
